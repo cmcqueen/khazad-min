@@ -1,5 +1,8 @@
 
+#include "khazad-matrix-mul.h"
 #include "khazad-mul2.h"
+
+#include <string.h>
 
 /*
  * 1  0001
@@ -51,7 +54,7 @@
  * output 6
  */
 
-void khazad_matrix_mult(uint8_t * p_output, const uint8_t * p_input)
+void khazad_matrix_mul(uint8_t p_output[KHAZAD_BLOCK_SIZE], const uint8_t p_input[KHAZAD_BLOCK_SIZE])
 {
     uint_fast8_t    i;
     uint8_t         val1;
@@ -59,11 +62,9 @@ void khazad_matrix_mult(uint8_t * p_output, const uint8_t * p_input)
     uint8_t         val4;
     uint8_t         val8;
 
-    for (i = 0; i < 8u; ++i)
-    {
-        p_output[i] = 0;
-    }
-    for (i = 0; i < 8u; ++i)
+    memset(p_output, 0, KHAZAD_BLOCK_SIZE);
+
+    for (i = 0; i < KHAZAD_BLOCK_SIZE; ++i)
     {
         /* # 1
          * save mul1
@@ -134,5 +135,13 @@ void khazad_matrix_mult(uint8_t * p_output, const uint8_t * p_input)
             p_output[i ^ 6] ^= val8 ^ val3;
         }
     }
+}
+
+void khazad_matrix_imul(uint8_t p_block[KHAZAD_BLOCK_SIZE])
+{
+    uint8_t     temp_output[KHAZAD_BLOCK_SIZE];
+
+    khazad_matrix_mul(temp_output, p_block);
+    memcpy(p_block, temp_output, KHAZAD_BLOCK_SIZE);
 }
 
