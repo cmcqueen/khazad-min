@@ -31,6 +31,13 @@ int main(int argc, char **argv)
     printf("100 iter: ");
     print_block_hex(crypt_block, KHAZAD_BLOCK_SIZE);
 
+    for (i = 100; i < 1000; ++i)
+    {
+        khazad_crypt(crypt_block, encode_key_schedule);
+    }
+    printf("1000 iter: ");
+    print_block_hex(crypt_block, KHAZAD_BLOCK_SIZE);
+
     return 0;
 }
 
