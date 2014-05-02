@@ -47,7 +47,7 @@ void khazad_crypt(uint8_t p_block[KHAZAD_BLOCK_SIZE], const uint8_t p_key_schedu
     add_block(p_block, p_key_schedule);
 }
 
-void khazad_encode_key_schedule(uint8_t p_key_schedule[KHAZAD_KEY_SCHEDULE_SIZE], const uint8_t p_key[KHAZAD_KEY_SIZE])
+void khazad_encrypt_key_schedule(uint8_t p_key_schedule[KHAZAD_KEY_SCHEDULE_SIZE], const uint8_t p_key[KHAZAD_KEY_SIZE])
 {
     uint_fast8_t    round;
     uint8_t       * p_key_0 = p_key_schedule;
@@ -62,6 +62,36 @@ void khazad_encode_key_schedule(uint8_t p_key_schedule[KHAZAD_KEY_SCHEDULE_SIZE]
 
         p_key_m2 = p_key_m1;
         p_key_m1 = p_key_0;
+        p_key_0 += KHAZAD_BLOCK_SIZE;
+    }
+}
+
+void khazad_decrypt_key_schedule(uint8_t p_key_schedule[KHAZAD_KEY_SCHEDULE_SIZE], const uint8_t p_key[KHAZAD_KEY_SIZE])
+{
+    uint_fast8_t    round;
+    uint8_t       * p_key_0;
+    uint8_t       * p_key_1;
+    uint8_t         key_temp[KHAZAD_BLOCK_SIZE];
+
+    khazad_encrypt_key_schedule(p_key_schedule, p_key);
+
+    /* Reverse order */
+    p_key_0 = p_key_schedule;
+    p_key_1 = p_key_schedule + KHAZAD_KEY_SCHEDULE_SIZE - KHAZAD_BLOCK_SIZE;
+    for (round = 0; round < (KHAZAD_NUM_ROUNDS + 1u) / 2u; ++round)
+    {
+        memcpy(key_temp, p_key_0, KHAZAD_BLOCK_SIZE);
+        memcpy(p_key_0, p_key_1, KHAZAD_BLOCK_SIZE);
+        memcpy(p_key_1, key_temp, KHAZAD_BLOCK_SIZE);
+        p_key_0 += KHAZAD_BLOCK_SIZE;
+        p_key_1 -= KHAZAD_BLOCK_SIZE;
+    }
+
+    /* Apply matrix multiply to rounds 1 to r-1. */
+    p_key_0 = p_key_schedule + KHAZAD_BLOCK_SIZE;
+    for (round = 1; round < KHAZAD_NUM_ROUNDS; ++round)
+    {
+        khazad_matrix_imul(p_key_0);
         p_key_0 += KHAZAD_BLOCK_SIZE;
     }
 }
