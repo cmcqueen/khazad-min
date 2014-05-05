@@ -1,35 +1,31 @@
 
 #include "khazad.h"
 #include "khazad-add-block.h"
+#include "khazad-matrix-mul.h"
 #include "khazad-sbox.h"
-
-#include "khazad-print-block.h"
 
 #include <string.h>
 
 
-static void apply_sbox(uint8_t p_block[KHAZAD_BLOCK_SIZE])
+static inline void round_func(uint8_t p_block[KHAZAD_BLOCK_SIZE], const uint8_t p_key_schedule_block[KHAZAD_BLOCK_SIZE])
 {
-    uint_fast8_t    i;
-
-    for (i = 0; i < KHAZAD_BLOCK_SIZE; ++i)
-    {
-        p_block[i] = khazad_sbox(p_block[i]);
-    }    
-}
-
-static round_func(uint8_t p_block[KHAZAD_BLOCK_SIZE], const uint8_t p_key_schedule_block[KHAZAD_BLOCK_SIZE])
-{
-    apply_sbox(p_block);
+    khazad_sbox_apply_block(p_block);
     khazad_matrix_imul(p_block);
     add_block(p_block, p_key_schedule_block);
 }
 
-static key_schedule_round_func(uint8_t p_block[KHAZAD_BLOCK_SIZE], uint_fast8_t round)
+static inline void key_schedule_round_func(uint8_t p_block[KHAZAD_BLOCK_SIZE], uint_fast8_t round)
 {
-    apply_sbox(p_block);
+    khazad_sbox_apply_block(p_block);
     khazad_matrix_imul(p_block);
     khazad_sbox_add_round_const(p_block, round);
+}
+
+static void decrypt_round_func(uint8_t p_block[KHAZAD_BLOCK_SIZE], const uint8_t p_key_schedule_block[KHAZAD_BLOCK_SIZE])
+{
+    add_block(p_block, p_key_schedule_block);
+    khazad_matrix_imul(p_block);
+    khazad_sbox_apply_block(p_block);
 }
 
 void khazad_crypt(uint8_t p_block[KHAZAD_BLOCK_SIZE], const uint8_t p_key_schedule[KHAZAD_KEY_SCHEDULE_SIZE])
@@ -43,11 +39,40 @@ void khazad_crypt(uint8_t p_block[KHAZAD_BLOCK_SIZE], const uint8_t p_key_schedu
         round_func(p_block, p_key_schedule);
         p_key_schedule += KHAZAD_BLOCK_SIZE;
     }
-    apply_sbox(p_block);
+    khazad_sbox_apply_block(p_block);
     add_block(p_block, p_key_schedule);
 }
 
-void khazad_encrypt_key_schedule(uint8_t p_key_schedule[KHAZAD_KEY_SCHEDULE_SIZE], const uint8_t p_key[KHAZAD_KEY_SIZE])
+/* This decrypt function uses the regular key schedule created by
+ * khazad_key_schedule().
+ *
+ * An alternative way to decrypt is to use khazad_crypt() with a special
+ * decryption key schedule created by khazad_decrypt_key_schedule().
+ *
+ * These two alternative methods of decryption are possible because of Khazad's
+ * involutional design.
+ *
+ * In practice, it's probably more convenient to have a single key
+ * schedule and separate encrypt/decrypt functions, rather than a single
+ * crypt function with separate encrypt/decrypt key schedules.
+ */
+void khazad_decrypt(uint8_t p_block[KHAZAD_BLOCK_SIZE], const uint8_t p_key_schedule[KHAZAD_KEY_SCHEDULE_SIZE])
+{
+    uint_fast8_t    round;
+
+    p_key_schedule += KHAZAD_KEY_SCHEDULE_SIZE - KHAZAD_BLOCK_SIZE;
+    add_block(p_block, p_key_schedule);
+    khazad_sbox_apply_block(p_block);
+    p_key_schedule -= KHAZAD_BLOCK_SIZE;
+    for (round = 0; round < (KHAZAD_NUM_ROUNDS - 1u); ++round)
+    {
+        decrypt_round_func(p_block, p_key_schedule);
+        p_key_schedule -= KHAZAD_BLOCK_SIZE;
+    }
+    add_block(p_block, p_key_schedule);
+}
+
+void khazad_key_schedule(uint8_t p_key_schedule[KHAZAD_KEY_SCHEDULE_SIZE], const uint8_t p_key[KHAZAD_KEY_SIZE])
 {
     uint_fast8_t    round;
     uint8_t       * p_key_0 = p_key_schedule;
@@ -66,6 +91,19 @@ void khazad_encrypt_key_schedule(uint8_t p_key_schedule[KHAZAD_KEY_SCHEDULE_SIZE
     }
 }
 
+/* This function creates a special decryption key schedule which can be
+ * used with khazad_crypt() to do decryption.
+ *
+ * An alternative way to decrypt is to use khazad_decrypt() with the regular
+ * key schedule created by key_schedule().
+ *
+ * These two alternative methods of decryption are possible because of Khazad's
+ * involutional design.
+ *
+ * In practice, it's probably more convenient to have a single key
+ * schedule and separate encrypt/decrypt functions, rather than a single
+ * crypt function with separate encrypt/decrypt key schedules.
+ */
 void khazad_decrypt_key_schedule(uint8_t p_key_schedule[KHAZAD_KEY_SCHEDULE_SIZE], const uint8_t p_key[KHAZAD_KEY_SIZE])
 {
     uint_fast8_t    round;
@@ -73,7 +111,7 @@ void khazad_decrypt_key_schedule(uint8_t p_key_schedule[KHAZAD_KEY_SCHEDULE_SIZE
     uint8_t       * p_key_1;
     uint8_t         key_temp[KHAZAD_BLOCK_SIZE];
 
-    khazad_encrypt_key_schedule(p_key_schedule, p_key);
+    khazad_key_schedule(p_key_schedule, p_key);
 
     /* Reverse order */
     p_key_0 = p_key_schedule;

@@ -6,7 +6,7 @@
 #include <stdio.h>
 
 
-static inline void print_block_hex(uint8_t * p_block, size_t len)
+static inline void print_block_hex(const uint8_t * p_block, size_t len)
 {
     while (len > 1)
     {

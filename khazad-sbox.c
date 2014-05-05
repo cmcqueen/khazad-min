@@ -24,6 +24,17 @@ const uint8_t khazad_sbox_table[256u] =
     0x4A, 0xBD, 0x8F, 0x2D, 0xBC, 0x9C, 0x6A, 0x40, 0xCF, 0xA2, 0x80, 0x4F, 0x1F, 0xCA, 0xAA, 0x42
 };
 
+
+void khazad_sbox_apply_block(uint8_t p_block[KHAZAD_BLOCK_SIZE])
+{
+    uint_fast8_t    i;
+
+    for (i = 0; i < KHAZAD_BLOCK_SIZE; ++i)
+    {
+        p_block[i] = khazad_sbox(p_block[i]);
+    }
+}
+
 void khazad_sbox_add_round_const(uint8_t p_block[KHAZAD_BLOCK_SIZE], uint_fast8_t round)
 {
     add_block(p_block, &khazad_sbox_table[round * KHAZAD_BLOCK_SIZE]);
