@@ -4,6 +4,8 @@
 #include "khazad-add-block.h"
 #include "khazad-sbox.h"
 
+#include "khazad-print-block.h"
+
 #include <string.h>
 
 
@@ -30,13 +32,39 @@ void khazad_otfks_encrypt(uint8_t p_block[KHAZAD_BLOCK_SIZE], uint8_t p_encrypt_
     uint8_t       * p_key_schedule_temp;
     uint8_t         key_temp[KHAZAD_BLOCK_SIZE];
 
-    add_block(p_block, p_key_schedule_m1);
-    for (round = 0; round < (KHAZAD_NUM_ROUNDS - 1u); ++round)
+#if 0
+    printf("encrypt key schedule block: ");
+    print_block_hex(p_encrypt_start_key, KHAZAD_BLOCK_SIZE);
+#endif
+    add_block(p_block, p_encrypt_start_key);
+    for (round = 2; round < KHAZAD_NUM_ROUNDS + 1u; ++round)
     {
+#if 0
+        printf("encrypt key schedule block: ");
+        print_block_hex(p_key_schedule, KHAZAD_BLOCK_SIZE);
+#endif
+        /* Do round function for round r-2 */
         round_func(p_block, p_key_schedule);
-        p_key_schedule += KHAZAD_BLOCK_SIZE;
+
+        //if (round >= (KHAZAD_NUM_ROUNDS + 0u))
+        //    break;
+
+        /* Swap key schedule pointers. */
+        p_key_schedule_temp = p_key_schedule_m1;
+        p_key_schedule_m1 = p_key_schedule;
+        p_key_schedule = p_key_schedule_temp;
+
+        /* Get round r-1 key schedule and apply round function. */
+        memcpy(key_temp, p_key_schedule_m1, KHAZAD_BLOCK_SIZE);
+        key_schedule_round_func(key_temp, round);
+        /* Add round r-2 key schedule, overwriting it. This becomes round r key schedule. */
+        add_block(p_key_schedule, key_temp);
     }
     khazad_sbox_apply_block(p_block);
+#if 0
+    printf("encrypt key schedule block: ");
+    print_block_hex(p_key_schedule, KHAZAD_BLOCK_SIZE);
+#endif
     add_block(p_block, p_key_schedule);
 }
 

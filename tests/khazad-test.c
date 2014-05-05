@@ -1,10 +1,12 @@
 
 #include "khazad.h"
+#include "khazad-otfks.h"
 #include "khazad-print-block.h"
 
 #include <string.h>
 
 #define DECRYPT_METHOD  1
+#define ENCRYPT_OTFKS   1
 
 int main(int argc, char **argv)
 {
@@ -13,6 +15,8 @@ int main(int argc, char **argv)
     const uint8_t plain_text[KHAZAD_BLOCK_SIZE] = { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
     uint8_t encrypt_key_schedule[KHAZAD_KEY_SCHEDULE_SIZE];
     uint8_t decrypt_key_schedule[KHAZAD_KEY_SCHEDULE_SIZE];
+    uint8_t encrypt_otfks_start[KHAZAD_KEY_SIZE];
+    uint8_t otfks_key_work[KHAZAD_KEY_SIZE];
     uint8_t crypt_block[KHAZAD_BLOCK_SIZE];
 
     (void)argc;
@@ -29,13 +33,23 @@ int main(int argc, char **argv)
     printf("decrypt key schedule: ");
     print_block_hex(decrypt_key_schedule, KHAZAD_KEY_SCHEDULE_SIZE);
 
+    memcpy(encrypt_otfks_start, key, KHAZAD_KEY_SIZE);
+    khazad_otfks_encrypt_start_key(encrypt_otfks_start);
+    printf("encrypt key start: ");
+    print_block_hex(encrypt_otfks_start, KHAZAD_KEY_SIZE);
+
     printf("plain: ");
     print_block_hex(plain_text, KHAZAD_BLOCK_SIZE);
 
     memcpy(crypt_block, plain_text, KHAZAD_BLOCK_SIZE);
 
     /* Encrypt 1 */
+#if ENCRYPT_OTFKS == 0
     khazad_crypt(crypt_block, encrypt_key_schedule);
+#else
+    memcpy(otfks_key_work, encrypt_otfks_start, KHAZAD_KEY_SIZE);
+    khazad_otfks_encrypt(crypt_block, otfks_key_work);
+#endif
 
     printf("crypt: ");
     print_block_hex(crypt_block, KHAZAD_BLOCK_SIZE);
@@ -43,7 +57,12 @@ int main(int argc, char **argv)
     /* Encrypt 100 */
     for (i = 1; i < 100; ++i)
     {
+#if ENCRYPT_OTFKS == 0
         khazad_crypt(crypt_block, encrypt_key_schedule);
+#else
+        memcpy(otfks_key_work, encrypt_otfks_start, KHAZAD_KEY_SIZE);
+        khazad_otfks_encrypt(crypt_block, otfks_key_work);
+#endif
     }
     printf("100 iter: ");
     print_block_hex(crypt_block, KHAZAD_BLOCK_SIZE);
@@ -51,7 +70,12 @@ int main(int argc, char **argv)
     /* Encrypt 1000 */
     for (i = 100; i < 1000; ++i)
     {
+#if ENCRYPT_OTFKS == 0
         khazad_crypt(crypt_block, encrypt_key_schedule);
+#else
+        memcpy(otfks_key_work, encrypt_otfks_start, KHAZAD_KEY_SIZE);
+        khazad_otfks_encrypt(crypt_block, otfks_key_work);
+#endif
     }
     printf("1000 iter: ");
     print_block_hex(crypt_block, KHAZAD_BLOCK_SIZE);
