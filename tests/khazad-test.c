@@ -43,8 +43,13 @@ int main(int argc, char **argv)
 #endif
 
 #if DECRYPT_OTFKS
+#if 1
     memcpy(otfks_decrypt_key_start, key, KHAZAD_KEY_SIZE);
     khazad_otfks_decrypt_start_key(otfks_decrypt_key_start);
+#else
+    memcpy(otfks_decrypt_key_start, otfks_encrypt_key_start, KHAZAD_KEY_SIZE);
+    khazad_otfks_decrypt_from_encrypt_start_key(otfks_decrypt_key_start);
+#endif
     printf("decrypt key start: ");
     print_block_hex(otfks_decrypt_key_start, KHAZAD_KEY_SIZE);
 #endif

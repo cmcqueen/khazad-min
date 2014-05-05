@@ -10,7 +10,7 @@ void khazad_otfks_decrypt(uint8_t p_block[KHAZAD_BLOCK_SIZE], uint8_t p_decrypt_
 
 void khazad_otfks_encrypt_start_key(uint8_t p_key[KHAZAD_KEY_SIZE]);
 void khazad_otfks_decrypt_start_key(uint8_t p_key[KHAZAD_KEY_SIZE]);
-
+void khazad_otfks_decrypt_from_encrypt_start_key(uint8_t p_key[KHAZAD_KEY_SIZE]);
 
 #endif /* !defined(KHAZAD_OTFKS_H) */
 

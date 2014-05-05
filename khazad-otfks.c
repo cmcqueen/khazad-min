@@ -126,32 +126,7 @@ void khazad_otfks_decrypt(uint8_t p_block[KHAZAD_BLOCK_SIZE], uint8_t p_decrypt_
     add_block(p_block, p_key_schedule_m1);
 }
 
-void khazad_otfks_encrypt_start_key(uint8_t p_key[KHAZAD_KEY_SIZE])
-{
-    uint8_t         key_temp[KHAZAD_BLOCK_SIZE];
-
-    /* Initially, p_key is round -2 key schedule, and
-     * p_key + KHAZAD_BLOCK_SIZE is round -1 key schedule. */
-
-    /* Round 0. r = 0. */
-    /* Get round -1 key schedule (r-1) and apply round function. */
-    memcpy(key_temp, p_key + KHAZAD_BLOCK_SIZE, KHAZAD_BLOCK_SIZE);
-    key_schedule_round_func(key_temp, 0);
-    /* Add round -2 key schedule (r-2), overwriting it. This becomes round 0 key schedule. */
-    add_block(p_key, key_temp);
-
-    /* Round 1. r = 1. */
-    /* Get round 0 key schedule (r-1) and apply round function. */
-    memcpy(key_temp, p_key, KHAZAD_BLOCK_SIZE);
-    key_schedule_round_func(key_temp, 1u);
-    /* Add round -1 key schedule (r-2), overwriting it. This becomes round 1 key schedule. */
-    add_block(p_key + KHAZAD_BLOCK_SIZE, key_temp);
-
-    /* Now, p_key is round 0 key schedule, and
-     * p_key + KHAZAD_BLOCK_SIZE is round 1 key schedule. */
-}
-
-void khazad_otfks_decrypt_start_key(uint8_t p_key[KHAZAD_KEY_SIZE])
+static void khazad_otfks_decrypt_calc_key(uint8_t p_key[KHAZAD_KEY_SIZE], uint_fast8_t start, uint_fast8_t stop)
 {
     uint_fast8_t    round;
     uint8_t       * p_key_schedule = p_key + KHAZAD_BLOCK_SIZE;
@@ -159,7 +134,7 @@ void khazad_otfks_decrypt_start_key(uint8_t p_key[KHAZAD_KEY_SIZE])
     uint8_t       * p_key_schedule_temp;
     uint8_t         key_temp[KHAZAD_BLOCK_SIZE];
 
-    for (round = 0; ; ++round)
+    for (round = start; ; ++round)
     {
         /* Get round r-1 key schedule and apply round function. */
         memcpy(key_temp, p_key_schedule, KHAZAD_BLOCK_SIZE);
@@ -167,7 +142,7 @@ void khazad_otfks_decrypt_start_key(uint8_t p_key[KHAZAD_KEY_SIZE])
         /* Add round r-2 key schedule, overwriting it. This becomes round r key schedule. */
         add_block(p_key_schedule_m1, key_temp);
 
-        if (round >= KHAZAD_NUM_ROUNDS)
+        if (round >= stop)
             break;
 
         /* Swap key schedule pointers. */
@@ -175,4 +150,19 @@ void khazad_otfks_decrypt_start_key(uint8_t p_key[KHAZAD_KEY_SIZE])
         p_key_schedule_m1 = p_key_schedule;
         p_key_schedule = p_key_schedule_temp;
     }
+}
+
+void khazad_otfks_encrypt_start_key(uint8_t p_key[KHAZAD_KEY_SIZE])
+{
+    khazad_otfks_decrypt_calc_key(p_key, 0, 1u);
+}
+
+void khazad_otfks_decrypt_start_key(uint8_t p_key[KHAZAD_KEY_SIZE])
+{
+    khazad_otfks_decrypt_calc_key(p_key, 0, KHAZAD_NUM_ROUNDS);
+}
+
+void khazad_otfks_decrypt_from_encrypt_start_key(uint8_t p_key[KHAZAD_KEY_SIZE])
+{
+    khazad_otfks_decrypt_calc_key(p_key, 2u, KHAZAD_NUM_ROUNDS);
 }
