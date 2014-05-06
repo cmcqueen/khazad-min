@@ -2,6 +2,7 @@
 #include "khazad.h"
 #include "khazad-otfks.h"
 #include "khazad-add-block.h"
+#include "khazad-matrix-mul.h"
 #include "khazad-sbox.h"
 
 #include "khazad-print-block.h"
