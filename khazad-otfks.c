@@ -5,8 +5,6 @@
 #include "khazad-matrix-mul.h"
 #include "khazad-sbox.h"
 
-#include "khazad-print-block.h"
-
 #include <string.h>
 
 
@@ -47,17 +45,9 @@ void khazad_otfks_encrypt(uint8_t p_block[KHAZAD_BLOCK_SIZE], uint8_t p_encrypt_
     uint8_t       * p_key_schedule_temp;
     uint8_t         key_temp[KHAZAD_BLOCK_SIZE];
 
-#if 0
-    printf("encrypt key schedule block: ");
-    print_block_hex(p_key_schedule_m1, KHAZAD_BLOCK_SIZE);
-#endif
     add_block(p_block, p_key_schedule_m1);
     for (round = 2; ; ++round)
     {
-#if 0
-        printf("encrypt key schedule block: ");
-        print_block_hex(p_key_schedule, KHAZAD_BLOCK_SIZE);
-#endif
         /* Do round function for round r-2 */
         round_func(p_block, p_key_schedule);
 
@@ -76,10 +66,6 @@ void khazad_otfks_encrypt(uint8_t p_block[KHAZAD_BLOCK_SIZE], uint8_t p_encrypt_
         p_key_schedule = p_key_schedule_temp;
     }
     khazad_sbox_apply_block(p_block);
-#if 0
-    printf("encrypt key schedule block: ");
-    print_block_hex(p_key_schedule_m1, KHAZAD_BLOCK_SIZE);
-#endif
     add_block(p_block, p_key_schedule_m1);
 }
 
@@ -91,18 +77,10 @@ void khazad_otfks_decrypt(uint8_t p_block[KHAZAD_BLOCK_SIZE], uint8_t p_decrypt_
     uint8_t       * p_key_schedule_temp;
     uint8_t         key_temp[KHAZAD_BLOCK_SIZE];
 
-#if 0
-    printf("decrypt key schedule block: ");
-    print_block_hex(p_key_schedule_m1, KHAZAD_BLOCK_SIZE);
-#endif
     add_block(p_block, p_key_schedule_m1);
     khazad_sbox_apply_block(p_block);
     for (round = KHAZAD_NUM_ROUNDS; ; --round)
     {
-#if 0
-    printf("decrypt key schedule block: ");
-    print_block_hex(p_key_schedule, KHAZAD_BLOCK_SIZE);
-#endif
         /* Do round function */
         decrypt_round_func(p_block, p_key_schedule);
 
@@ -120,10 +98,6 @@ void khazad_otfks_decrypt(uint8_t p_block[KHAZAD_BLOCK_SIZE], uint8_t p_decrypt_
         p_key_schedule_m1 = p_key_schedule;
         p_key_schedule = p_key_schedule_temp;
     }
-#if 0
-    printf("decrypt key schedule block: ");
-    print_block_hex(p_key_schedule_m1, KHAZAD_BLOCK_SIZE);
-#endif
     add_block(p_block, p_key_schedule_m1);
 }
 
