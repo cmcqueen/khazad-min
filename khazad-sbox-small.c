@@ -8,6 +8,7 @@ static const uint8_t sbox_small_table[16u] =
 };
 
 
+#if 0
 static uint8_t khazad_sbox(uint8_t input)
 {
     uint8_t     work0hi;
@@ -26,6 +27,61 @@ static uint8_t khazad_sbox(uint8_t input)
 
     return (work0hi & 0xF0) | (work0lo & 0xF);
 }
+
+#else
+
+static uint8_t khazad_sbox(uint8_t input)
+{
+    uint8_t         work_hi;
+    uint8_t         work_lo;
+    uint8_t         temp;
+    uint_fast8_t    i;
+
+    work_hi = input >> 4u;
+    work_lo = input & 0xFu;
+
+    for (i = 0; ; i++)
+    {
+#if 1
+        if (i != 1)
+        {
+            work_hi = sbox_small_table[work_hi] >> 4u;      // P box
+            work_lo = sbox_small_table[work_lo] & 0xFu;     // Q box
+        }
+        else
+        {
+            work_lo = sbox_small_table[work_lo] >> 4u;      // P box
+            work_hi = sbox_small_table[work_hi] & 0xFu;     // Q box
+        }
+#else
+        if (i == 1)
+        {
+            temp = work_hi;
+            work_hi = work_lo;
+            work_lo = temp;
+        }
+        work_hi = sbox_small_table[work_hi] >> 4u;      // P box
+        work_lo = sbox_small_table[work_lo] & 0xFu;     // Q box
+        if (i == 1)
+        {
+            temp = work_hi;
+            work_hi = work_lo;
+            work_lo = temp;
+        }
+#endif
+
+        if (i > 1)
+        {
+            return (work_hi << 4u) | work_lo;
+        }
+
+        temp = work_hi;
+        work_hi = (work_hi & 0xC) | (work_lo >> 2u);
+        work_lo = ((temp << 2u ) & 0xC) | (work_lo & 3);
+    }
+}
+
+#endif
 
 
 void khazad_sbox_apply_block(uint8_t p_block[KHAZAD_BLOCK_SIZE])
