@@ -7,12 +7,46 @@ static const uint8_t sbox_small_table[16u] =
     0x39, 0xFE, 0xE5, 0x06, 0x5A, 0x42, 0xB3, 0xCC, 0xDF, 0xA0, 0x94, 0x6D, 0x77, 0x8B, 0x21, 0x18
 };
 
-
-#if 0
+#if 1
 
 static uint8_t khazad_sbox(uint8_t input)
 {
-    uint8_t         work[2];
+    uint8_t         work;
+    uint_fast8_t    i;
+
+    work = input;
+
+    for (i = 0; ; i++)
+    {
+        if (i == 1)
+        {
+            // Swap nibbles
+            // Hopefully the compiler converts this to a single rotate instruction
+            work = (work << 4u) | (work >> 4u);
+        }
+        work = (sbox_small_table[work >> 4u] & 0xF0) |  // P box
+               (sbox_small_table[work & 0xF] & 0xF);    // Q box
+        if (i == 1)
+        {
+            // Swap nibbles
+            // Hopefully the compiler converts this to a single rotate instruction
+            work = (work << 4u) | (work >> 4u);
+        }
+
+        if (i > 1)
+        {
+            return work;
+        }
+
+        work = (work & 0xC3) | ((work & 0x30) >> 2u) | ((work & 0xC) << 2u);
+    }
+}
+
+#elif 0
+
+static uint8_t khazad_sbox(uint8_t input)
+{
+    uint8_t         work[2];    // work[1] is high nibble; work[0] is low nibble
     uint8_t         temp;
     uint_fast8_t    i;
 
@@ -39,8 +73,8 @@ static uint8_t khazad_sbox(uint8_t input)
 
 static uint8_t khazad_sbox(uint8_t input)
 {
-    uint8_t         work_hi;
-    uint8_t         work_lo;
+    uint8_t         work_hi;    // high nibble
+    uint8_t         work_lo;    // low nibble
     uint8_t         temp;
     uint_fast8_t    i;
 
@@ -63,6 +97,7 @@ static uint8_t khazad_sbox(uint8_t input)
 #elif 0
         if (i == 1)
         {
+            // Swap nibbles
             temp = work_hi;
             work_hi = work_lo;
             work_lo = temp;
@@ -71,6 +106,7 @@ static uint8_t khazad_sbox(uint8_t input)
         work_lo = sbox_small_table[work_lo] & 0xFu;     // Q box
         if (i == 1)
         {
+            // Swap nibbles
             temp = work_hi;
             work_hi = work_lo;
             work_lo = temp;
