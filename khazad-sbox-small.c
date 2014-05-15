@@ -8,28 +8,6 @@ static const uint8_t sbox_small_table[16u] =
 };
 
 
-#if 0
-static uint8_t khazad_sbox(uint8_t input)
-{
-    uint8_t     work0hi;
-    uint8_t     work0lo;
-    uint8_t     work1hi;
-    uint8_t     work1lo;
-
-    work0hi = sbox_small_table[input >> 4u];    // relevant output is P box in upper 4 bits
-    work0lo = sbox_small_table[input & 0xFu];   // relevant output is Q box in lower 4 bits
-
-    work1hi = sbox_small_table[((work0hi & 0xC0u) >> 4u) | ((work0lo & 0xCu) >> 2u)];   // relevant output is Q box in lower 4 bits
-    work1lo = sbox_small_table[((work0hi & 0x30u) >> 2u) | (work0lo & 3u)];             // relevant output is P box in upper 4 bits
-
-    work0hi = sbox_small_table[(work1hi & 0xCu) | ((work1lo & 0xC0u) >> 6u)];           // relevant output is P box in upper 4 bits
-    work0lo = sbox_small_table[((work1hi & 3u) << 2u) | ((work1lo & 0x30u) >> 4u)];     // relevant output is Q box in lower 4 bits
-
-    return (work0hi & 0xF0) | (work0lo & 0xF);
-}
-
-#else
-
 static uint8_t khazad_sbox(uint8_t input)
 {
     uint8_t         work_hi;
@@ -80,8 +58,6 @@ static uint8_t khazad_sbox(uint8_t input)
         work_lo = ((temp << 2u ) & 0xC) | (work_lo & 3);
     }
 }
-
-#endif
 
 
 void khazad_sbox_apply_block(uint8_t p_block[KHAZAD_BLOCK_SIZE])
