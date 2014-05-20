@@ -9,6 +9,8 @@
 #define ENCRYPT_OTFKS   1
 #define DECRYPT_OTFKS   1
 
+#define TOTAL_ROUNDS    1000
+
 int main(int argc, char **argv)
 {
     size_t  i;
@@ -83,33 +85,36 @@ int main(int argc, char **argv)
     printf("100 iter: ");
     print_block_hex(crypt_block, KHAZAD_BLOCK_SIZE);
 
-    /* Encrypt 1000 */
-    for (i = 100; i < 1000; ++i)
+    if (100 < TOTAL_ROUNDS)
     {
+        /* Encrypt up to TOTAL_ROUNDS */
+        for (i = 100; i < TOTAL_ROUNDS; ++i)
+        {
 #if ENCRYPT_OTFKS == 0
-        khazad_crypt(crypt_block, encrypt_key_schedule);
+            khazad_crypt(crypt_block, encrypt_key_schedule);
 #else
-        memcpy(otfks_key_work, otfks_encrypt_key_start, KHAZAD_KEY_SIZE);
-        khazad_otfks_encrypt(crypt_block, otfks_key_work);
+            memcpy(otfks_key_work, otfks_encrypt_key_start, KHAZAD_KEY_SIZE);
+            khazad_otfks_encrypt(crypt_block, otfks_key_work);
 #endif
-    }
-    printf("1000 iter: ");
-    print_block_hex(crypt_block, KHAZAD_BLOCK_SIZE);
+        }
+        printf("%lu iter: ", (unsigned long)TOTAL_ROUNDS);
+        print_block_hex(crypt_block, KHAZAD_BLOCK_SIZE);
 
-    /* Decrypt from 1000 down to 100 */
-    for (i = 100; i < 1000; ++i)
-    {
+        /* Decrypt from TOTAL_ROUNDS down to 100 */
+        for (i = 100; i < TOTAL_ROUNDS; ++i)
+        {
 #if DECRYPT_OTFKS == 1
-    memcpy(otfks_key_work, otfks_decrypt_key_start, KHAZAD_KEY_SIZE);
-    khazad_otfks_decrypt(crypt_block, otfks_key_work);
+        memcpy(otfks_key_work, otfks_decrypt_key_start, KHAZAD_KEY_SIZE);
+        khazad_otfks_decrypt(crypt_block, otfks_key_work);
 #elif DECRYPT_METHOD == 0
-        khazad_crypt(crypt_block, decrypt_key_schedule);
+            khazad_crypt(crypt_block, decrypt_key_schedule);
 #else
-        khazad_decrypt(crypt_block, encrypt_key_schedule);
+            khazad_decrypt(crypt_block, encrypt_key_schedule);
 #endif
+        }
+        printf("Decrypt down to 100 iter: ");
+        print_block_hex(crypt_block, KHAZAD_BLOCK_SIZE);
     }
-    printf("Decrypt down to 100 iter: ");
-    print_block_hex(crypt_block, KHAZAD_BLOCK_SIZE);
 
     /* Decrypt from 100 down to 1 */
     for (i = 1; i < 100; ++i)
