@@ -22,7 +22,7 @@ static inline void key_schedule_round_func(uint8_t p_block[KHAZAD_BLOCK_SIZE], u
     khazad_sbox_add_round_const(p_block, round);
 }
 
-static void decrypt_round_func(uint8_t p_block[KHAZAD_BLOCK_SIZE], const uint8_t p_key_schedule_block[KHAZAD_BLOCK_SIZE])
+static inline void decrypt_round_func(uint8_t p_block[KHAZAD_BLOCK_SIZE], const uint8_t p_key_schedule_block[KHAZAD_BLOCK_SIZE])
 {
     add_block(p_block, p_key_schedule_block);
     khazad_matrix_imul(p_block);
