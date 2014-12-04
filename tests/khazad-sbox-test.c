@@ -38,12 +38,15 @@ int main(int argc, char **argv)
     {
         sbox_out[i] = i;
     }
-
-    printf("s-box array:\n");
     for (i = 0; i < 256u; i += KHAZAD_BLOCK_SIZE)
     {
         khazad_sbox_apply_block(&sbox_out[i]);
-        print_block_hex(&sbox_out[i], KHAZAD_BLOCK_SIZE);
+    }
+
+    printf("s-box array:\n");
+    for (i = 0; i < 256u; i += 16u)
+    {
+        print_block_hex(&sbox_out[i], 16u);
     }
 
     return memcmp(sbox_out, sbox_ref, 256u) ? 1 : 0;
