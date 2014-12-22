@@ -16,6 +16,11 @@ Testing
 
 This has had minimal testing, by inspection of encryption/decryption of one of the [test vectors][3].
 
+License
+-------
+
+This code is released under the MIT license. See LICENSE.txt for details.
+
 
 [1]: http://www.larc.usp.br/~pbarreto/KhazadPage.html
 [2]: http://en.wikipedia.org/wiki/KHAZAD
