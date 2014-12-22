@@ -1,5 +1,11 @@
 /*****************************************************************************
+ * khazad-otfks.c
  *
+ * Khazad functions with on-the-fly key schedule calculations.
+ * These functions don't require the full pre-calculated key schedule, thus
+ * reducing memory requirements, at the expense of greater execution time.
+ * These functions could be useful for a small microprocessor-based system
+ * with limited ROM/RAM memory, such as a smartcard.
  ****************************************************************************/
 
 /*****************************************************************************
