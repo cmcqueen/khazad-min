@@ -1,8 +1,19 @@
+/*****************************************************************************
+ *
+ ****************************************************************************/
+
+/*****************************************************************************
+ * Includes
+ ****************************************************************************/
 
 #include "khazad-matrix-mul.h"
 #include "khazad-mul2.h"
 
 #include <string.h>
+
+/*****************************************************************************
+ * Functions
+ ****************************************************************************/
 
 /*
  * 1  0001
@@ -53,7 +64,6 @@
  * xor mul8
  * output 6
  */
-
 void khazad_matrix_mul(uint8_t p_output[KHAZAD_BLOCK_SIZE], const uint8_t p_input[KHAZAD_BLOCK_SIZE])
 {
     uint_fast8_t    i;
@@ -144,4 +154,3 @@ void khazad_matrix_imul(uint8_t p_block[KHAZAD_BLOCK_SIZE])
     khazad_matrix_mul(temp_output, p_block);
     memcpy(p_block, temp_output, KHAZAD_BLOCK_SIZE);
 }
-

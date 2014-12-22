@@ -1,10 +1,21 @@
+/*****************************************************************************
+ *
+ ****************************************************************************/
 
 #ifndef KHAZAD_ADD_BLOCK_H
 #define KHAZAD_ADD_BLOCK_H
 
+/*****************************************************************************
+ * Includes
+ ****************************************************************************/
+
 #include "khazad.h"
 
 #include <stdint.h>
+
+/*****************************************************************************
+ * Inline functions
+ ****************************************************************************/
 
 static inline void add_block(uint8_t p_block[KHAZAD_BLOCK_SIZE], const uint8_t p_add_block[KHAZAD_BLOCK_SIZE])
 {
@@ -16,6 +27,4 @@ static inline void add_block(uint8_t p_block[KHAZAD_BLOCK_SIZE], const uint8_t p
     }    
 }
 
-
 #endif /* !defined(KHAZAD_ADD_BLOCK_H) */
-
