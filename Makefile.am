@@ -12,8 +12,11 @@ lib_LTLIBRARIES = lib@PACKAGE_NAME@-@PACKAGE_VERSION@.la
 library_include_khazad_mindir=$(includedir)/@PACKAGE_NAME@-@PACKAGE_VERSION@
 library_include_khazad_min_HEADERS = khazad.h khazad-otfks.h
 lib@PACKAGE_NAME@_@PACKAGE_VERSION@_la_SOURCES = khazad.c  khazad-otfks.c  khazad-matrix-mul.c
-#lib@PACKAGE_NAME@_@PACKAGE_VERSION@_la_SOURCES += khazad-sbox.c
+if ENABLE_SBOX_SMALL
 lib@PACKAGE_NAME@_@PACKAGE_VERSION@_la_SOURCES += khazad-sbox-small.c
+else
+lib@PACKAGE_NAME@_@PACKAGE_VERSION@_la_SOURCES += khazad-sbox.c
+endif
 lib@PACKAGE_NAME@_@PACKAGE_VERSION@_la_SOURCES += khazad-add-block.h  khazad.h  khazad-matrix-mul.h  khazad-mul2.h  khazad-sbox.h
 lib@PACKAGE_NAME@_@PACKAGE_VERSION@_la_LDFLAGS = -version-info @LIB_SO_VERSION@
 
