@@ -11,7 +11,8 @@ lib_LTLIBRARIES = lib@PACKAGE_NAME@-@PACKAGE_VERSION@.la
 
 library_include_khazad_mindir=$(includedir)/@PACKAGE_NAME@-@PACKAGE_VERSION@
 library_include_khazad_min_HEADERS = khazad.h khazad-otfks.h
-lib@PACKAGE_NAME@_@PACKAGE_VERSION@_la_SOURCES = khazad-crypt.c khazad-decrypt.c khazad-key-schedule.c khazad-decrypt-key-schedule.c khazad-otfks.c khazad-matrix-mul.c
+lib@PACKAGE_NAME@_@PACKAGE_VERSION@_la_SOURCES = khazad-crypt.c khazad-decrypt.c khazad-key-schedule.c khazad-decrypt-key-schedule.c khazad-matrix-mul.c
+lib@PACKAGE_NAME@_@PACKAGE_VERSION@_la_SOURCES += khazad-otfks-encrypt.c khazad-otfks-decrypt.c khazad-otfks-key.c
 if ENABLE_SBOX_SMALL
 lib@PACKAGE_NAME@_@PACKAGE_VERSION@_la_SOURCES += khazad-sbox-small.c
 else
