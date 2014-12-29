@@ -28,12 +28,15 @@ pkgconfig_DATA = @PACKAGE_NAME@.pc
 #######################################
 # Tests
 
-TESTS = khazad-test khazad-sbox-test
+TESTS = khazad-test khazad-sbox-test khazad-vectors-test
 
-check_PROGRAMS = khazad-sbox-test khazad-test
+check_PROGRAMS = khazad-sbox-test khazad-test khazad-vectors-test
 
 khazad_test_SOURCES = tests/khazad-test.c khazad-print-block.h
 khazad_test_LDADD = lib@PACKAGE_NAME@-@PACKAGE_VERSION@.la
 
 khazad_sbox_test_SOURCES = tests/khazad-sbox-test.c khazad-print-block.h
 khazad_sbox_test_LDADD = lib@PACKAGE_NAME@-@PACKAGE_VERSION@.la
+
+khazad_vectors_test_SOURCES = tests/khazad-vectors-test.c khazad-print-block.h
+khazad_vectors_test_LDADD = lib@PACKAGE_NAME@-@PACKAGE_VERSION@.la

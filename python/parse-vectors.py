@@ -41,6 +41,7 @@ def main():
 
     filename = sys.argv[1]
     with open(filename, "r") as f:
+        vectors_list = []
         for test_data in vectors_iter(f):
             #pprint(test_data)
             vector_prefix = "set{}vector{}".format(test_data['set'], test_data['vector'])
@@ -52,7 +53,10 @@ def main():
                 if i in test_data:
                     array_data = byte_string_to_c_array_init(test_data[i])
                     print("const uint8_t {}iter{}[] = {{ {} }};".format(vector_prefix, i, array_data))
+
             print("const vector_data_t {} = {{".format(vector_prefix))
+            print("    .set_num = {},".format(test_data['set']))
+            print("    .vector_num = {},".format(test_data['vector']))
             for key in ('key', 'plain', 'cipher', 'decrypted'):
                 if key in test_data:
                     print("    .{} = {}{},".format(key, vector_prefix, key))
@@ -66,6 +70,12 @@ def main():
                     print("    .iter{} = NULL,".format(i))
             print("};")
             print()
+            vectors_list.append(vector_prefix)
+
+        print("const vector_data_t * const test_vectors[] = {")
+        for vector_name in vectors_list:
+            print("    &{},".format(vector_name))
+        print("};")
 
 if __name__ == "__main__":
     main()
