@@ -52,24 +52,52 @@ typedef struct
  * Functions
  ****************************************************************************/
 
-bool test_khazad(const vector_data_t * p_vector_data)
+static bool test_khazad(const vector_data_t * p_vector_data, bool do_otfks)
 {
     size_t  i;
-    uint8_t encrypt_key_schedule[KHAZAD_KEY_SCHEDULE_SIZE];
-    uint8_t decrypt_key_schedule[KHAZAD_KEY_SCHEDULE_SIZE];
-    uint8_t otfks_encrypt_key_start[KHAZAD_KEY_SIZE];
-    uint8_t otfks_decrypt_key_start[KHAZAD_KEY_SIZE];
-    uint8_t otfks_key_work[KHAZAD_KEY_SIZE];
-    uint8_t crypt_block[KHAZAD_BLOCK_SIZE];
+    uint8_t encrypt_key_schedule[KHAZAD_KEY_SCHEDULE_SIZE] = {};
+    uint8_t decrypt_key_schedule[KHAZAD_KEY_SCHEDULE_SIZE] = {};
+    uint8_t otfks_encrypt_key_start[KHAZAD_KEY_SIZE] = {};
+    uint8_t otfks_decrypt_key_start[KHAZAD_KEY_SIZE] = {};
+    uint8_t otfks_key_work[KHAZAD_KEY_SIZE] = {};
+    uint8_t crypt_block[KHAZAD_BLOCK_SIZE] = {};
     const uint8_t * p_decrypted;
 
-    khazad_key_schedule(encrypt_key_schedule, p_vector_data->key);
-
-    khazad_decrypt_key_schedule(decrypt_key_schedule, p_vector_data->key);
+    if (do_otfks)
+    {
+        /* Start key for encrypt */
+        memcpy(otfks_encrypt_key_start, p_vector_data->key, KHAZAD_KEY_SIZE);
+        khazad_otfks_encrypt_start_key(otfks_encrypt_key_start);
+        /* Start key for decrypt */
+#if 1
+        memcpy(otfks_decrypt_key_start, p_vector_data->key, KHAZAD_KEY_SIZE);
+        khazad_otfks_decrypt_start_key(otfks_decrypt_key_start);
+#else
+        memcpy(otfks_decrypt_key_start, otfks_encrypt_key_start, KHAZAD_KEY_SIZE);
+        khazad_otfks_decrypt_from_encrypt_start_key(otfks_decrypt_key_start);
+#endif
+    }
+    else
+    {
+        /* Encrypt key schedule */
+        khazad_key_schedule(encrypt_key_schedule, p_vector_data->key);
+        /* Decrypt key schedule (for the alternative method of decryption) */
+        khazad_decrypt_key_schedule(decrypt_key_schedule, p_vector_data->key);
+    }
 
     /* Encrypt 1 */
     memcpy(crypt_block, p_vector_data->plain, KHAZAD_BLOCK_SIZE);
-    khazad_crypt(crypt_block, encrypt_key_schedule);
+    if (do_otfks)
+    {
+        memcpy(otfks_key_work, otfks_encrypt_key_start, KHAZAD_KEY_SIZE);
+        khazad_otfks_encrypt(crypt_block, otfks_key_work);
+    }
+    else
+    {
+        khazad_crypt(crypt_block, encrypt_key_schedule);
+    }
+
+    /* Check encrypt 1 */
     if (p_vector_data->cipher &&
         memcmp(crypt_block, p_vector_data->cipher, KHAZAD_BLOCK_SIZE) != 0)
     {
@@ -78,11 +106,21 @@ bool test_khazad(const vector_data_t * p_vector_data)
     }
 
     /* Decrypt from 1 back to plain */
+    if (do_otfks)
+    {
+        memcpy(otfks_key_work, otfks_decrypt_key_start, KHAZAD_KEY_SIZE);
+        khazad_otfks_decrypt(crypt_block, otfks_key_work);
+    }
+    else
+    {
+        khazad_decrypt(crypt_block, encrypt_key_schedule);
+    }
+
+    /* Check decrypt */
     if (p_vector_data->decrypted)
         p_decrypted = p_vector_data->decrypted;
     else
         p_decrypted = p_vector_data->plain;
-    khazad_decrypt(crypt_block, encrypt_key_schedule);
     if (memcmp(crypt_block, p_decrypted, KHAZAD_BLOCK_SIZE) != 0)
     {
         printf("set %u vector %u decrypt error\n", p_vector_data->set_num, p_vector_data->vector_num);
@@ -99,7 +137,14 @@ int main(int argc, char **argv)
 
     for (i = 0; i < dimof(test_vectors); ++i)
     {
-        is_okay = test_khazad(test_vectors[i]);
+        /* Using pre-calculated key schedule */
+        is_okay = test_khazad(test_vectors[i], false);
+        if (!is_okay)
+        {
+            return 1;
+        }
+        /* Using on-the-fly key schedule calculation */
+        is_okay = test_khazad(test_vectors[i], true);
         if (!is_okay)
         {
             return 1;
