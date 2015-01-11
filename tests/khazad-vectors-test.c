@@ -85,46 +85,129 @@ static bool test_khazad(const vector_data_t * p_vector_data, bool do_otfks)
         khazad_decrypt_key_schedule(decrypt_key_schedule, p_vector_data->key);
     }
 
-    /* Encrypt 1 */
     memcpy(crypt_block, p_vector_data->plain, KHAZAD_BLOCK_SIZE);
-    if (do_otfks)
+
+    for (i = 0; ; )
     {
-        memcpy(otfks_key_work, otfks_encrypt_key_start, KHAZAD_KEY_SIZE);
-        khazad_otfks_encrypt(crypt_block, otfks_key_work);
-    }
-    else
-    {
-        khazad_crypt(crypt_block, encrypt_key_schedule);
+        /* Encrypt 1 */
+        if (do_otfks)
+        {
+            memcpy(otfks_key_work, otfks_encrypt_key_start, KHAZAD_KEY_SIZE);
+            khazad_otfks_encrypt(crypt_block, otfks_key_work);
+        }
+        else
+        {
+            khazad_crypt(crypt_block, encrypt_key_schedule);
+        }
+
+        i++;
+        if (i == 1u)
+        {
+            /* Check encrypt 1 */
+            if (p_vector_data->cipher &&
+                memcmp(crypt_block, p_vector_data->cipher, KHAZAD_BLOCK_SIZE) != 0)
+            {
+                printf("set %u vector %u encrypt error\n", p_vector_data->set_num, p_vector_data->vector_num);
+                return false;
+            }
+            if (p_vector_data->iter100 == NULL &&
+                p_vector_data->iter1000 == NULL &&
+                p_vector_data->iter100000000 == NULL)
+            {
+                break;
+            }
+        }
+        else if (i == 100u)
+        {
+            /* Check encrypt 100 */
+            if (p_vector_data->iter100 &&
+                memcmp(crypt_block, p_vector_data->iter100, KHAZAD_BLOCK_SIZE) != 0)
+            {
+                printf("set %u vector %u encrypt 100 error\n", p_vector_data->set_num, p_vector_data->vector_num);
+                return false;
+            }
+            if (p_vector_data->iter1000 == NULL &&
+                p_vector_data->iter100000000 == NULL)
+            {
+                break;
+            }
+        }
+        else if (i == 1000u)
+        {
+            /* Check encrypt 1000 */
+            if (p_vector_data->iter1000 &&
+                memcmp(crypt_block, p_vector_data->iter1000, KHAZAD_BLOCK_SIZE) != 0)
+            {
+                printf("set %u vector %u encrypt 1000 error\n", p_vector_data->set_num, p_vector_data->vector_num);
+                return false;
+            }
+            if (p_vector_data->iter100000000 == NULL)
+            {
+                break;
+            }
+#if 1
+            /* Skip 10^8 test */
+            break;
+#endif
+        }
+        else if (i == 100000000u)
+        {
+            /* Check encrypt 100000000 */
+            if (p_vector_data->iter100000000 &&
+                memcmp(crypt_block, p_vector_data->iter100000000, KHAZAD_BLOCK_SIZE) != 0)
+            {
+                printf("set %u vector %u encrypt 100000000 error\n", p_vector_data->set_num, p_vector_data->vector_num);
+                return false;
+            }
+            break;
+        }
     }
 
-    /* Check encrypt 1 */
-    if (p_vector_data->cipher &&
-        memcmp(crypt_block, p_vector_data->cipher, KHAZAD_BLOCK_SIZE) != 0)
+    for (;;)
     {
-        printf("set %u vector %u encrypt error\n", p_vector_data->set_num, p_vector_data->vector_num);
-        return false;
-    }
+        /* Decrypt back to plain */
+        if (do_otfks)
+        {
+            memcpy(otfks_key_work, otfks_decrypt_key_start, KHAZAD_KEY_SIZE);
+            khazad_otfks_decrypt(crypt_block, otfks_key_work);
+        }
+        else
+        {
+            khazad_decrypt(crypt_block, encrypt_key_schedule);
+        }
 
-    /* Decrypt from 1 back to plain */
-    if (do_otfks)
-    {
-        memcpy(otfks_key_work, otfks_decrypt_key_start, KHAZAD_KEY_SIZE);
-        khazad_otfks_decrypt(crypt_block, otfks_key_work);
-    }
-    else
-    {
-        khazad_decrypt(crypt_block, encrypt_key_schedule);
-    }
+        i--;
 
-    /* Check decrypt */
-    if (p_vector_data->decrypted)
-        p_decrypted = p_vector_data->decrypted;
-    else
-        p_decrypted = p_vector_data->plain;
-    if (memcmp(crypt_block, p_decrypted, KHAZAD_BLOCK_SIZE) != 0)
-    {
-        printf("set %u vector %u decrypt error\n", p_vector_data->set_num, p_vector_data->vector_num);
-        return false;
+        /* Check decrypt */
+        if (i == 1000u && p_vector_data->iter1000)
+        {
+            if (memcmp(crypt_block, p_vector_data->iter1000, KHAZAD_BLOCK_SIZE) != 0)
+            {
+                printf("set %u vector %u decrypt 1000 error\n", p_vector_data->set_num, p_vector_data->vector_num);
+                return false;
+            }
+        }
+        else if (i == 100u && p_vector_data->iter100)
+        {
+            if (memcmp(crypt_block, p_vector_data->iter100, KHAZAD_BLOCK_SIZE) != 0)
+            {
+                printf("set %u vector %u decrypt 100 error\n", p_vector_data->set_num, p_vector_data->vector_num);
+                return false;
+            }
+        }
+        else if (i == 0)
+        {
+            if (p_vector_data->decrypted)
+                p_decrypted = p_vector_data->decrypted;
+            else
+                p_decrypted = p_vector_data->plain;
+            if (memcmp(crypt_block, p_decrypted, KHAZAD_BLOCK_SIZE) != 0)
+            {
+                printf("set %u vector %u decrypt error\n", p_vector_data->set_num, p_vector_data->vector_num);
+                return false;
+            }
+            break;
+        }
     }
 
     return true;
@@ -135,18 +218,23 @@ int main(int argc, char **argv)
     size_t  i;
     bool    is_okay;
 
+    (void)argc;
+    (void)argv;
+
     for (i = 0; i < dimof(test_vectors); ++i)
     {
         /* Using pre-calculated key schedule */
         is_okay = test_khazad(test_vectors[i], false);
         if (!is_okay)
         {
+            printf("failed for pre-calculated key schedule\n");
             return 1;
         }
         /* Using on-the-fly key schedule calculation */
         is_okay = test_khazad(test_vectors[i], true);
         if (!is_okay)
         {
+            printf("failed for on-the-fly key schedule\n");
             return 1;
         }
     }
