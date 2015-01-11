@@ -52,7 +52,7 @@ typedef struct
  * Functions
  ****************************************************************************/
 
-static bool test_khazad(const vector_data_t * p_vector_data, bool do_otfks)
+static bool test_khazad_main(const vector_data_t * p_vector_data, bool do_otfks)
 {
     size_t  i;
     uint8_t encrypt_key_schedule[KHAZAD_KEY_SCHEDULE_SIZE] = {};
@@ -107,7 +107,8 @@ static bool test_khazad(const vector_data_t * p_vector_data, bool do_otfks)
             if (p_vector_data->cipher &&
                 memcmp(crypt_block, p_vector_data->cipher, KHAZAD_BLOCK_SIZE) != 0)
             {
-                printf("set %u vector %u encrypt error\n", p_vector_data->set_num, p_vector_data->vector_num);
+                printf("set %u vector %u encrypt error\n",
+                        p_vector_data->set_num, p_vector_data->vector_num);
                 return false;
             }
             if (p_vector_data->iter100 == NULL &&
@@ -123,7 +124,8 @@ static bool test_khazad(const vector_data_t * p_vector_data, bool do_otfks)
             if (p_vector_data->iter100 &&
                 memcmp(crypt_block, p_vector_data->iter100, KHAZAD_BLOCK_SIZE) != 0)
             {
-                printf("set %u vector %u encrypt 100 error\n", p_vector_data->set_num, p_vector_data->vector_num);
+                printf("set %u vector %u encrypt 100 error\n",
+                        p_vector_data->set_num, p_vector_data->vector_num);
                 return false;
             }
             if (p_vector_data->iter1000 == NULL &&
@@ -138,17 +140,17 @@ static bool test_khazad(const vector_data_t * p_vector_data, bool do_otfks)
             if (p_vector_data->iter1000 &&
                 memcmp(crypt_block, p_vector_data->iter1000, KHAZAD_BLOCK_SIZE) != 0)
             {
-                printf("set %u vector %u encrypt 1000 error\n", p_vector_data->set_num, p_vector_data->vector_num);
+                printf("set %u vector %u encrypt 1000 error\n",
+                        p_vector_data->set_num, p_vector_data->vector_num);
                 return false;
             }
             if (p_vector_data->iter100000000 == NULL)
             {
                 break;
             }
-#if 1
+
             /* Skip 10^8 test */
             break;
-#endif
         }
         else if (i == 100000000u)
         {
@@ -156,7 +158,8 @@ static bool test_khazad(const vector_data_t * p_vector_data, bool do_otfks)
             if (p_vector_data->iter100000000 &&
                 memcmp(crypt_block, p_vector_data->iter100000000, KHAZAD_BLOCK_SIZE) != 0)
             {
-                printf("set %u vector %u encrypt 100000000 error\n", p_vector_data->set_num, p_vector_data->vector_num);
+                printf("set %u vector %u encrypt 100000000 error\n",
+                        p_vector_data->set_num, p_vector_data->vector_num);
                 return false;
             }
             break;
@@ -183,7 +186,8 @@ static bool test_khazad(const vector_data_t * p_vector_data, bool do_otfks)
         {
             if (memcmp(crypt_block, p_vector_data->iter1000, KHAZAD_BLOCK_SIZE) != 0)
             {
-                printf("set %u vector %u decrypt 1000 error\n", p_vector_data->set_num, p_vector_data->vector_num);
+                printf("set %u vector %u decrypt 1000 error\n",
+                        p_vector_data->set_num, p_vector_data->vector_num);
                 return false;
             }
         }
@@ -191,7 +195,8 @@ static bool test_khazad(const vector_data_t * p_vector_data, bool do_otfks)
         {
             if (memcmp(crypt_block, p_vector_data->iter100, KHAZAD_BLOCK_SIZE) != 0)
             {
-                printf("set %u vector %u decrypt 100 error\n", p_vector_data->set_num, p_vector_data->vector_num);
+                printf("set %u vector %u decrypt 100 error\n",
+                        p_vector_data->set_num, p_vector_data->vector_num);
                 return false;
             }
         }
@@ -203,7 +208,8 @@ static bool test_khazad(const vector_data_t * p_vector_data, bool do_otfks)
                 p_decrypted = p_vector_data->plain;
             if (memcmp(crypt_block, p_decrypted, KHAZAD_BLOCK_SIZE) != 0)
             {
-                printf("set %u vector %u decrypt error\n", p_vector_data->set_num, p_vector_data->vector_num);
+                printf("set %u vector %u decrypt error\n",
+                        p_vector_data->set_num, p_vector_data->vector_num);
                 return false;
             }
             break;
@@ -213,29 +219,121 @@ static bool test_khazad(const vector_data_t * p_vector_data, bool do_otfks)
     return true;
 }
 
+static bool test_khazad_100000000(const vector_data_t * p_vector_data, bool do_otfks)
+{
+    size_t  i;
+    uint8_t encrypt_key_schedule[KHAZAD_KEY_SCHEDULE_SIZE] = {};
+    uint8_t otfks_encrypt_key_start[KHAZAD_KEY_SIZE] = {};
+    uint8_t otfks_key_work[KHAZAD_KEY_SIZE] = {};
+    uint8_t crypt_block[KHAZAD_BLOCK_SIZE] = {};
+
+    /* Set up initial key schedule */
+    if (do_otfks)
+    {
+        /* Start key for encrypt */
+        memcpy(otfks_encrypt_key_start, p_vector_data->key, KHAZAD_KEY_SIZE);
+        khazad_otfks_encrypt_start_key(otfks_encrypt_key_start);
+    }
+    else
+    {
+        /* Encrypt key schedule */
+        khazad_key_schedule(encrypt_key_schedule, p_vector_data->key);
+    }
+
+    memcpy(crypt_block, p_vector_data->plain, KHAZAD_BLOCK_SIZE);
+
+    for (i = 0; ; )
+    {
+        /* Encrypt 1 */
+        if (do_otfks)
+        {
+            memcpy(otfks_key_work, otfks_encrypt_key_start, KHAZAD_KEY_SIZE);
+            khazad_otfks_encrypt(crypt_block, otfks_key_work);
+        }
+        else
+        {
+            khazad_crypt(crypt_block, encrypt_key_schedule);
+        }
+
+        /* Set up next key schedule from next encryption key.
+         * Next encryption key is repeats of last byte of last encryption round. */
+        if (do_otfks)
+        {
+            /* Start key for encrypt */
+            memset(otfks_encrypt_key_start, crypt_block[KHAZAD_BLOCK_SIZE-1], KHAZAD_KEY_SIZE);
+            khazad_otfks_encrypt_start_key(otfks_encrypt_key_start);
+        }
+        else
+        {
+            /* Encrypt key schedule */
+            memset(otfks_encrypt_key_start, crypt_block[KHAZAD_BLOCK_SIZE-1], KHAZAD_KEY_SIZE);
+            khazad_key_schedule(encrypt_key_schedule, otfks_encrypt_key_start);
+        }
+
+        i++;
+
+        if (i == 100000000u)
+        {
+            /* Check encrypt 100000000 */
+            if (p_vector_data->iter100000000 &&
+                memcmp(crypt_block, p_vector_data->iter100000000, KHAZAD_BLOCK_SIZE) != 0)
+            {
+                printf("set %u vector %u encrypt 10^8 error\n",
+                        p_vector_data->set_num, p_vector_data->vector_num);
+                return false;
+            }
+            break;
+        }
+    }
+
+    return true;
+}
+
+static bool test_khazad(const vector_data_t * p_vector_data, bool do_otfks)
+{
+    if (p_vector_data->iter100000000 == NULL)
+    {
+        return test_khazad_main(p_vector_data, do_otfks);
+    }
+    else
+    {
+        return test_khazad_100000000(p_vector_data, do_otfks);
+    }
+}
+
 int main(int argc, char **argv)
 {
     size_t  i;
     bool    is_okay;
+    bool    do_otfks;
 
     (void)argc;
     (void)argv;
 
     for (i = 0; i < dimof(test_vectors); ++i)
     {
-        /* Using pre-calculated key schedule */
-        is_okay = test_khazad(test_vectors[i], false);
-        if (!is_okay)
+        do_otfks = false;
+        for (;;)
         {
-            printf("failed for pre-calculated key schedule\n");
-            return 1;
-        }
-        /* Using on-the-fly key schedule calculation */
-        is_okay = test_khazad(test_vectors[i], true);
-        if (!is_okay)
-        {
-            printf("failed for on-the-fly key schedule\n");
-            return 1;
+            /* Using pre-calculated key schedule */
+            is_okay = test_khazad(test_vectors[i], do_otfks);
+            if (is_okay == false ||
+                test_vectors[i]->iter100000000)
+            {
+                printf("set %u vector %u %s%s%s\n",
+                        test_vectors[i]->set_num, test_vectors[i]->vector_num,
+                        test_vectors[i]->iter100000000 ? "10^8 " : "",
+                        do_otfks ? "(OTFKS) " : "",
+                        is_okay ? "succeeded" : "failed");
+            }
+            if (!is_okay)
+            {
+                return 1;
+            }
+            if (do_otfks == false)
+                do_otfks = true;
+            else
+                break;
         }
     }
     return 0;
