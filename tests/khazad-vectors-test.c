@@ -223,6 +223,7 @@ static bool test_khazad_100000000(const vector_data_t * p_vector_data, bool do_o
 {
     size_t  i;
     uint8_t encrypt_key_schedule[KHAZAD_KEY_SCHEDULE_SIZE] = {};
+    uint8_t encrypt_key[KHAZAD_KEY_SIZE] = {};
     uint8_t otfks_encrypt_key_start[KHAZAD_KEY_SIZE] = {};
     uint8_t otfks_key_work[KHAZAD_KEY_SIZE] = {};
     uint8_t crypt_block[KHAZAD_BLOCK_SIZE] = {};
@@ -255,8 +256,8 @@ static bool test_khazad_100000000(const vector_data_t * p_vector_data, bool do_o
             khazad_crypt(crypt_block, encrypt_key_schedule);
         }
 
-        /* Set up next key schedule from next encryption key.
-         * Next encryption key is repeats of last byte of last encryption round. */
+        /* Set up next key schedule for next encryption key.
+         * Next encryption key is repeats of last byte from last encryption round. */
         if (do_otfks)
         {
             /* Start key for encrypt */
@@ -266,8 +267,8 @@ static bool test_khazad_100000000(const vector_data_t * p_vector_data, bool do_o
         else
         {
             /* Encrypt key schedule */
-            memset(otfks_encrypt_key_start, crypt_block[KHAZAD_BLOCK_SIZE-1], KHAZAD_KEY_SIZE);
-            khazad_key_schedule(encrypt_key_schedule, otfks_encrypt_key_start);
+            memset(encrypt_key, crypt_block[KHAZAD_BLOCK_SIZE-1], KHAZAD_KEY_SIZE);
+            khazad_key_schedule(encrypt_key_schedule, encrypt_key);
         }
 
         i++;
@@ -293,11 +294,18 @@ static bool test_khazad(const vector_data_t * p_vector_data, bool do_otfks)
 {
     if (p_vector_data->iter100000000 == NULL)
     {
+        /* Main tests. */
         return test_khazad_main(p_vector_data, do_otfks);
     }
     else
     {
+#if 1
+        /* Different test for 10^8 iterations. */
         return test_khazad_100000000(p_vector_data, do_otfks);
+#else
+        /* Skip 10^8 iterations test, since it's long. */
+        return true;
+#endif
     }
 }
 
@@ -312,6 +320,8 @@ int main(int argc, char **argv)
 
     for (i = 0; i < dimof(test_vectors); ++i)
     {
+        /* Do each test twice, once with pre-calculated key schedule, then
+         * again with on-the-fly key schedule calculation. */
         do_otfks = false;
         for (;;)
         {
