@@ -14,14 +14,23 @@ Normally the S-box implementation is by a simple 256-byte table look-up. An opti
 Testing
 -------
 
-This has had minimal testing, by inspection of encryption/decryption of one of the [test vectors][3].
+Test programs are included, which test the S-box implementation and encrypt and decrypt operations.
+
+Encryption and decryption are tested against the official [test vectors][3]. The test vectors were parsed and converted to C data structures using a Python program.
+
+When using autotools, run the tests via:
+
+    make check
+
+Most of the test vectors can be checked quickly, however the last set of vectors, set 4, involve 10<sup>8</sup> iterations of key schedule and encryption, so take some time to run.
 
 License
 -------
 
-This code is released under the MIT license. See LICENSE.txt for details.
+This code is released under the MIT license. See [`LICENSE.txt`][4] for details.
 
 
 [1]: http://www.larc.usp.br/~pbarreto/KhazadPage.html
 [2]: http://en.wikipedia.org/wiki/KHAZAD
 [3]: http://www.larc.usp.br/~pbarreto/khazad-tweak-test-vectors.zip
+[4]: LICENSE.txt
