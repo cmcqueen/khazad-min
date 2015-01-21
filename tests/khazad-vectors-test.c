@@ -306,6 +306,10 @@ static bool test_khazad(const vector_data_t * p_vector_data, bool do_otfks)
         return test_khazad_100000000(p_vector_data, do_otfks);
 #else
         /* Skip 10^8 iterations test, since it's long. */
+        printf("set %u vector %u %s%sskipped\n",
+                p_vector_data->set_num, p_vector_data->vector_num,
+                p_vector_data->iter100000000 ? "10^8 " : "",
+                do_otfks ? "(OTFKS) " : "");
         return true;
 #endif
     }
@@ -330,7 +334,7 @@ int main(int argc, char **argv)
             /* Using pre-calculated key schedule */
             is_okay = test_khazad(test_vectors[i], do_otfks);
             if (is_okay == false ||
-                test_vectors[i]->iter100000000)
+                ENABLE_LONG_TEST && test_vectors[i]->iter100000000)
             {
                 printf("set %u vector %u %s%s%s\n",
                         test_vectors[i]->set_num, test_vectors[i]->vector_num,

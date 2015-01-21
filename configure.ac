@@ -58,6 +58,8 @@ AC_ARG_ENABLE([long-test],
     AS_HELP_STRING([--enable-long-test], [Enable long-duration unit tests]))
 AS_IF([test "x$enable_long_test" = "xyes"], [
     AC_DEFINE([ENABLE_LONG_TEST], [1], [Enable long-duration unit tests])
+], [
+    AC_DEFINE([ENABLE_LONG_TEST], [0], [Enable long-duration unit tests])
 ])
 AM_CONDITIONAL([ENABLE_LONG_TEST], [test "x$enable_long_test" = "xyes"])
 
