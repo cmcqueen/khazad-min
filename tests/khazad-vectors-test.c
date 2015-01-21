@@ -10,6 +10,8 @@
  * Includes
  ****************************************************************************/
 
+#include "config.h"
+
 #include "khazad.h"
 #include "khazad-otfks.h"
 #include "khazad-print-block.h"
@@ -299,7 +301,7 @@ static bool test_khazad(const vector_data_t * p_vector_data, bool do_otfks)
     }
     else
     {
-#if 1
+#if ENABLE_LONG_TEST
         /* Different test for 10^8 iterations. */
         return test_khazad_100000000(p_vector_data, do_otfks);
 #else

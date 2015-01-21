@@ -49,11 +49,17 @@ AM_CONDITIONAL([WITH_CXXTEST], [test "x$with_cxxtest" = "xyes"])
 
 AC_ARG_ENABLE([sbox-small],
     AS_HELP_STRING([--enable-sbox-small], [Enable small S-box implementation]))
-
 AS_IF([test "x$enable_sbox_small" = "xyes"], [
     AC_DEFINE([ENABLE_SBOX_SMALL], [1], [Enable small S-box implementation])
 ])
 AM_CONDITIONAL([ENABLE_SBOX_SMALL], [test "x$enable_sbox_small" = "xyes"])
+
+AC_ARG_ENABLE([long-test],
+    AS_HELP_STRING([--enable-long-test], [Enable long-duration unit tests]))
+AS_IF([test "x$enable_long_test" = "xyes"], [
+    AC_DEFINE([ENABLE_LONG_TEST], [1], [Enable long-duration unit tests])
+])
+AM_CONDITIONAL([ENABLE_LONG_TEST], [test "x$enable_long_test" = "xyes"])
 
 AC_OUTPUT
 

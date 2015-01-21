@@ -22,7 +22,9 @@ When using autotools, run the tests via:
 
     make check
 
-Most of the test vectors can be checked quickly, however the last set of vectors, set 4, involve 10<sup>8</sup> iterations of key schedule and encryption, so take some time to run.
+Most of the test vectors can be checked quickly, however the last set of vectors, set 4, involve 10<sup>8</sup> iterations of key schedule and encryption, so take some time to run. So the set 4 vectors are skipped by default. To run these tests, define the macro `ENABLE_LONG_TEST` in `khazad-vectors-test.c`. If using autotools, add the `--enable-long-test` configure option:
+
+    ./configure --enable-long-test
 
 License
 -------
