@@ -38,5 +38,5 @@ khazad_test_LDADD = lib@PACKAGE_NAME@-@PACKAGE_VERSION@.la
 khazad_sbox_test_SOURCES = tests/khazad-sbox-test.c khazad-print-block.h
 khazad_sbox_test_LDADD = lib@PACKAGE_NAME@-@PACKAGE_VERSION@.la
 
-khazad_vectors_test_SOURCES = tests/khazad-vectors-test.c khazad-print-block.h
+khazad_vectors_test_SOURCES = tests/khazad-vectors-test.c tests/khazad-test-vectors.h khazad-print-block.h
 khazad_vectors_test_LDADD = lib@PACKAGE_NAME@-@PACKAGE_VERSION@.la
