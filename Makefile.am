@@ -29,9 +29,9 @@ pkgconfig_DATA = @PACKAGE_NAME@.pc
 #######################################
 # Tests
 
-TESTS = khazad-test khazad-sbox-test khazad-vectors-test
+TESTS = khazad-test khazad-sbox-test khazad-vectors-test gcm-test
 
-check_PROGRAMS = khazad-sbox-test khazad-test khazad-vectors-test
+check_PROGRAMS = khazad-sbox-test khazad-test khazad-vectors-test gcm-test
 
 khazad_test_SOURCES = tests/khazad-test.c khazad-print-block.h
 khazad_test_LDADD = lib@PACKAGE_NAME@.la
@@ -41,3 +41,6 @@ khazad_sbox_test_LDADD = lib@PACKAGE_NAME@.la
 
 khazad_vectors_test_SOURCES = tests/khazad-vectors-test.c tests/khazad-test-vectors.h khazad-print-block.h
 khazad_vectors_test_LDADD = lib@PACKAGE_NAME@.la
+
+gcm_test_SOURCES = tests/gcm-test.c khazad-add-block.h khazad-print-block.h
+gcm_test_LDADD = lib@PACKAGE_NAME@.la
