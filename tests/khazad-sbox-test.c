@@ -1,8 +1,11 @@
 
-#include "khazad-sbox.h"
+#include "khazad-min.h"
 #include "khazad-print-block.h"
 
 #include <string.h>
+
+
+void _khazad_sbox_apply_block_for_test(uint8_t p_block[KHAZAD_BLOCK_SIZE]);
 
 
 static const uint8_t sbox_ref[256u] =
@@ -40,7 +43,7 @@ int main(int argc, char **argv)
     }
     for (i = 0; i < 256u; i += KHAZAD_BLOCK_SIZE)
     {
-        khazad_sbox_apply_block(&sbox_out[i]);
+        _khazad_sbox_apply_block_for_test(&sbox_out[i]);
     }
 
     printf("s-box array:\n");

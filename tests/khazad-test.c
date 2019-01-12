@@ -1,6 +1,5 @@
 
-#include "khazad.h"
-#include "khazad-otfks.h"
+#include "khazad-min.h"
 #include "khazad-print-block.h"
 
 #include <string.h>

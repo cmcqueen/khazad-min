@@ -45,6 +45,20 @@
 #define KHAZAD_KEY_SCHEDULE_SIZE    (KHAZAD_BLOCK_SIZE * (KHAZAD_NUM_ROUNDS + 1u))
 
 /*****************************************************************************
+ * Inline functions
+ ****************************************************************************/
+
+static inline void khazad_add_block(uint8_t p_block[KHAZAD_BLOCK_SIZE], const uint8_t p_add_block[KHAZAD_BLOCK_SIZE])
+{
+    uint_fast8_t    i;
+
+    for (i = 0; i < KHAZAD_BLOCK_SIZE; ++i)
+    {
+        p_block[i] ^= p_add_block[i];
+    }
+}
+
+/*****************************************************************************
  * Function prototypes
  ****************************************************************************/
 
@@ -79,6 +93,56 @@ void khazad_key_schedule(uint8_t p_key_schedule[KHAZAD_KEY_SCHEDULE_SIZE], const
  * This key schedule is suitable for use with khazad_crypt() to do decryption.
  */
 void khazad_decrypt_key_schedule(uint8_t p_key_schedule[KHAZAD_KEY_SCHEDULE_SIZE], const uint8_t p_key[KHAZAD_KEY_SIZE]);
+
+
+/* Khazad encryption with on-the-fly key schedule calculation.
+ *
+ * p_block points to a 16-byte buffer of plain data to encrypt. Encryption
+ * is done in-place in that buffer.
+ * p_encrypt_start_key must initially point to a starting key state for
+ * encryption, which must be calculated from the Khazad key, by the function
+ * khazad_otfks_encrypt_start_key(). Key schedule is calculated on-the-fly in
+ * that buffer, so the buffer must re-initialised for subsequent encryption
+ * operations.
+ */
+void khazad_otfks_encrypt(uint8_t p_block[KHAZAD_BLOCK_SIZE], uint8_t p_encrypt_start_key[KHAZAD_KEY_SIZE]);
+
+/* Khazad decryption with on-the-fly key schedule calculation.
+ *
+ * p_block points to a 16-byte buffer of encrypted data to decrypt. Decryption
+ * is done in-place in that buffer.
+ * p_decrypt_start_key must initially point to a starting key state for
+ * decryption, which must be calculated from the Khazad key, by the function
+ * khazad_otfks_decrypt_start_key(). Key schedule is calculated on-the-fly in
+ * that buffer, so the buffer must re-initialised for subsequent encryption
+ * operations.
+ */
+void khazad_otfks_decrypt(uint8_t p_block[KHAZAD_BLOCK_SIZE], uint8_t p_decrypt_start_key[KHAZAD_KEY_SIZE]);
+
+/* Calculate the starting key state needed for encryption with on-the-fly key
+ * schedule calculation. The starting encryption key state is the first 16
+ * bytes of the Khazad key schedule, which is not the Khazad key itself but two
+ * key schedule rounds applied to the Khazad key.
+ * The encryption start key calculation is done in-place in the buffer p_key[].
+ * So p_key points to a 16-byte buffer containing the Khazad key. On exit, it
+ * contains the encryption start key state suitable for khazad_otfks_encrypt().
+ */
+void khazad_otfks_encrypt_start_key(uint8_t p_key[KHAZAD_KEY_SIZE]);
+
+/* Calculate the starting key state needed for decryption with on-the-fly key
+ * schedule calculation. The starting decryption key state is the last 16 bytes
+ * of the Khazad key schedule.
+ * The decryption start key calculation is done in-place in the buffer p_key[].
+ * So p_key points to a 16-byte buffer containing the Khazad key. On exit, it
+ * contains the decryption start key state suitable for khazad_otfks_decrypt().
+ */
+void khazad_otfks_decrypt_start_key(uint8_t p_key[KHAZAD_KEY_SIZE]);
+
+/* This calculates the decryption start key, but unlike
+ * khazad_otfks_decrypt_start_key(), it calculates it from the encryption start
+ * key rather than the original Khazad key.
+ */
+void khazad_otfks_decrypt_from_encrypt_start_key(uint8_t p_key[KHAZAD_KEY_SIZE]);
 
 
 #endif /* !defined(KHAZAD_H) */

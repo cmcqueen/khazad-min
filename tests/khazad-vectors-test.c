@@ -10,10 +10,7 @@
  * Includes
  ****************************************************************************/
 
-#include "config.h"
-
-#include "khazad.h"
-#include "khazad-otfks.h"
+#include "khazad-min.h"
 #include "khazad-print-block.h"
 
 #include <string.h>
@@ -25,6 +22,10 @@
 
 #ifndef dimof
 #define dimof(array)    (sizeof(array) / sizeof(array[0]))
+#endif
+
+#ifndef ENABLE_LONG_TEST
+#define ENABLE_LONG_TEST        0
 #endif
 
 /*****************************************************************************
